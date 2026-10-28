@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Happy Birthday</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 让画布铺满全屏
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const cx = canvas.width / 2; // 屏幕中心 X
+        const cy = canvas.height / 2; // 屏幕中心 Y
+
+        // --- 你的原版爱心数学公式 ---
+        function hearta(k) {
+            return 15 * Math.pow(Math.sin(k), 3);
+        }
+        function heartb(k) {
+            return 12 * Math.cos(k) - 5 * Math.cos(2 * k) - 2 * Math.cos(3 * k) - Math.cos(4 * k);
+        }
+
+        // --- 文字掉落准备 ---
+        const words = ["王玲珑", "生日快乐", "❤", "Happy", "Love"];
+        let texts = [];
+        
+        class FallingText {
+            constructor() {
+                this.text = words[Math.floor(Math.random() * words.length)];
+                this.x = Math.random() * canvas.width;
+                this.y = -30;
+                this.speed = Math.random() * 2 + 1.5;
+                this.size = Math.random() * 10 + 16;
+                this.color = Math.random() > 0.5 ? '#ffffff' : '#F74667';
+            }
+            update() {
+                this.y += this.speed;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.font = `${this.size}px 'Microsoft YaHei', sans-serif`;
+                ctx.fillText(this.text, this.x, this.y);
+            }
+        }
+
+        // --- 动画时间变量 ---
+        let time = 0;
+
+        // --- 核心动画循环 ---
+        function animate() {
+            // 1. 半透明背景实现拖尾效果（原版黑底）
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            time += 0.08;
+            // 让爱心有跳动的缩放效果（0.85 到 1.15 之间伸缩）
+            let scale = 1 + 0.15 * Math.sin(time * 3);
+
+            // 2. 完全还原你 Python 代码里的缠绕画法
+            ctx.beginPath();
+            ctx.strokeStyle = "#F74667";
+            ctx.lineWidth = 1.5;
+
+            let lastX = 0, lastY = 0;
+
+            for (let i = 0; i < 600; i++) {
+                // 对应你的 goto(hearta(i) * 20, heartb(i) * 20)
+                let x20 = cx + hearta(i) * 20 * scale;
+                let y20 = cy - heartb(i) * 20 * scale; // Canvas 的 Y 轴向下，所以要减去
+                
+                // 对应你的 goto(hearta(i) * 8, heartb(i) * 8)
+                let x8 = cx + hearta(i) * 8 * scale;
+                let y8 = cy - heartb(i) * 8 * scale;
+
+                if (i === 0) {
+                    ctx.moveTo(x20, y20);
+                } else {
+                    // turtle 的 goto 默认是画线，所以这里连线
+                    ctx.lineTo(x20, y20);
+                }
+                // 连到内圈
+                ctx.lineTo(x8, y8);
+            }
+            ctx.stroke();
+
+            // 3. 处理文字掉落逻辑
+            if (Math.random() < 0.1) { // 10% 概率生成新文字
+                texts.push(new FallingText());
+            }
+
+            for (let i = texts.length - 1; i >= 0; i--) {
+                texts[i].update();
+                texts[i].draw();
+                // 掉出屏幕就删除
+                if (texts[i].y > canvas.height) {
+                    texts.splice(i, 1);
+                }
+            }
+
+            // 循环调用下一帧
+            requestAnimationFrame(animate);
+        }
+
+        // 启动动画
+        animate();
+    </script>
+</body>
+</html>
