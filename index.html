@@ -2,12 +2,17 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Heart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematical Heart</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: black; /* 对应 bgcolor("black") */
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             overflow: hidden;
         }
         canvas {
@@ -16,55 +21,63 @@
     </style>
 </head>
 <body>
-    <canvas id="myCanvas"></canvas>
-
+    <canvas id="heartCanvas"></canvas>
     <script>
-        const canvas = document.getElementById('myCanvas');
+        const canvas = document.getElementById('heartCanvas');
         const ctx = canvas.getContext('2d');
-        
-        // 让画布铺满全屏
+
+        // 设置画布大小为窗口大小
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
-        // 获取屏幕中心点，因为 turtle 的 (0,0) 在屏幕正中间，而网页的 (0,0) 在左上角
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;
 
-        // 你的原版爱心数学公式
+        // 爱心参数方程（和 Python 版完全一致）
         function hearta(k) {
             return 15 * Math.pow(Math.sin(k), 3);
         }
 
         function heartb(k) {
-            return 12 * Math.cos(k) - 5 * Math.cos(2 * k) - 2 * Math.cos(3 * k) - Math.cos(4 * k);
+            return 12 * Math.cos(k)
+                 - 5 * Math.cos(2 * k)
+                 - 2 * Math.cos(3 * k)
+                 - Math.cos(4 * k);
         }
 
-        // 开始画线
-        ctx.beginPath();
-        ctx.strokeStyle = "#F74667"; // 对应 color("#F74667")
-        ctx.lineWidth = 1.5; // 线条粗细
+        // 将坐标原点移到画布中心
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const scale = 12; // 缩放系数，可根据屏幕调整
 
-        // 对应 for i in range(600)
-        for (let i = 0; i < 600; i++) {
-            // 计算外圈坐标 (20)
-            let x20 = cx + hearta(i) * 20;
-            let y20 = cy - heartb(i) * 20; // 网页 Y 轴是向下的，所以要减去
+        ctx.strokeStyle = '#F74667';
+        ctx.lineWidth = 1;
 
-            // 计算内圈坐标 (8)
-            let x8 = cx + hearta(i) * 8;
-            let y8 = cy - heartb(i) * 8;
+        // 逐帧绘制，模拟 turtle 的慢速绘制效果
+        let i = 0;
+        const total = 600;
 
-            // 相当于 turtle 的 goto()，画出交织的线
-            if (i === 0) {
-                ctx.moveTo(x20, y20);
-            } else {
-                ctx.lineTo(x20, y20);
-            }
-            ctx.lineTo(x8, y8);
+        function draw() {
+            if (i >= total) return;
+
+            const x1 = centerX + hearta(i) * scale;
+            const y1 = centerY - heartb(i) * scale; // y轴翻转
+            const x2 = centerX + hearta(i) * scale * 0.4;
+            const y2 = centerY - heartb(i) * scale * 0.4;
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            i++;
+            requestAnimationFrame(draw);
         }
 
-        // 把画好的线显示出来
-        ctx.stroke();
+        draw();
+
+        // 窗口大小改变时重新调整画布
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
